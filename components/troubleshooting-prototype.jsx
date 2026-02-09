@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 
 // ─── Design Tokens (from Figma) ─────────────────────────────────────────
@@ -974,7 +976,6 @@ const GlobalStyles = () => (
       to { transform: translateY(0); }
     }
     textarea::placeholder { color: ${COLORS.textPlaceholder}; }
-    * { box-sizing: border-box; }
   `}</style>
 );
 
