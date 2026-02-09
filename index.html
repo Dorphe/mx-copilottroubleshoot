@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoPilot Dynamic Troubleshooting — Prototype</title>
+  <style>
+    body { margin: 0; background: #f3f5f7; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const COLORS = {
+      bgPrimary: "#ffffff", bgSecondary: "#f9fafb", bgPrimaryAccent: "#f7fbff",
+      bgExpressiveBlue: "#e7f3fe", bgFeedbackPositive: "#ecfdf7", bgFeedbackNegative: "#fef2f2",
+      textPrimary: "#1e2429", textSecondary: "#4d5a66", textPlaceholder: "#b5c0c9",
+      textInformative: "#004fa8", textPositive: "#027a65", textNegative: "#ec4146",
+      strokeDefault: "#dadfe3", copilotGradientStart: "#6366f1", copilotGradientEnd: "#3b82f6",
+    };
+    const RADIUS = { "1x": 4, "2x": 8, "3x": 12, full: 9999 };
+    const SPACING = { xxs: 2, xs: 4, sm: 8, md: 16, lg: 32 };
+
+    const CopilotOrb = ({ size = 24 }) => (
+      <div style={{ width: size, height: size, borderRadius: RADIUS.full, background: `radial-gradient(circle at 40% 35%, #818cf8, ${COLORS.copilotGradientStart} 40%, ${COLORS.copilotGradientEnd} 100%)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "inset 0 -2px 4px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.25)", position: "relative", overflow: "hidden" }}>
+        <div style={{ width: size * 0.42, height: size * 0.42, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.7))", boxShadow: "0 1px 3px rgba(99,102,241,0.4)" }} />
+      </div>
+    );
+
+    const Icon = ({ name, size = 24, color = COLORS.textSecondary }) => {
+      const icons = {
+        close: <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round" />,
+        question: <><circle cx="12" cy="12" r="10" stroke={color} strokeWidth="1.5" fill="none" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={color} strokeWidth="1.5" strokeLinecap="round" fill="none" /><circle cx="12" cy="17" r="0.5" fill={color} stroke={color} strokeWidth="0.5" /></>,
+        comments: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" />,
+        mechanical: <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />,
+        library: <><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke={color} strokeWidth="1.5" fill="none" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke={color} strokeWidth="1.5" fill="none" /></>,
+        workOrder: <><rect x="3" y="3" width="18" height="18" rx="2" stroke={color} strokeWidth="1.5" fill="none" /><path d="M3 9h18M9 3v18" stroke={color} strokeWidth="1.5" /></>,
+        mic: <><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke={color} strokeWidth="1.5" fill="none" /><path d="M19 10v2a7 7 0 01-14 0v-2" stroke={color} strokeWidth="1.5" strokeLinecap="round" fill="none" /><line x1="12" y1="19" x2="12" y2="23" stroke={color} strokeWidth="1.5" strokeLinecap="round" /><line x1="8" y1="23" x2="16" y2="23" stroke={color} strokeWidth="1.5" strokeLinecap="round" /></>,
+        image: <><rect x="3" y="3" width="18" height="18" rx="2" stroke={color} strokeWidth="1.5" fill="none" /><path d="M3 16l5-5 4 4 3-3 6 6" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /><circle cx="8.5" cy="8.5" r="1.5" fill={color} /></>,
+        send: <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
+        check: <path d="M20 6L9 17l-5-5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
+        "thumbs-up": <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
+        "thumbs-down": <path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10zM17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
+        chevronLeft: <path d="M15 18l-6-6 6-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
+        chevronDown: <path d="M6 9l6 6 6-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
+        externalLink: <><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke={color} strokeWidth="1.5" fill="none" /><polyline points="15 3 21 3 21 9" stroke={color} strokeWidth="1.5" fill="none" /><line x1="10" y1="14" x2="21" y2="3" stroke={color} strokeWidth="1.5" /></>,
+        file: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke={color} strokeWidth="1.5" fill="none" /><polyline points="14 2 14 8 20 8" stroke={color} strokeWidth="1.5" fill="none" /></>,
+      };
+      return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>{icons[name]}</svg>;
+    };
+
+    const AssetAvatar = ({ size = 24 }) => (
+      <div style={{ width: size, height: size, borderRadius: RADIUS["2x"], border: `1px solid ${COLORS.strokeDefault}`, background: "linear-gradient(135deg, #1e3a5f, #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+        <Icon name="mechanical" size={size * 0.6} color="rgba(255,255,255,0.8)" />
+      </div>
+    );
+
+    const SCENARIO = {
+      asset: { name: "R 2475N7.5 Air Compressor", id: "AC-2475-031", location: "Bldg 3, Line 2 \u2014 Packaging", lastPM: "2025-12-15" },
+      wo: { number: "48291", title: "Air compressor on Line 2 keeps tripping off", description: "Air compressor on Line 2 keeps tripping off. Packaging machines losing pressure and slowing down the line.", history: "2 thermal shutdowns in the past 6 months." },
+      intake: { questions: ["Is the compressor shutting off completely, or running but not building pressure?", "Any unusual noises, vibrations, or burning smell?", "When did this start?"], defaultResponse: "It runs for about 10 minutes then shuts off. No weird smells. Started this morning." },
+      steps: [
+        { id: "step1", analysis: "This sounds like a thermal overload shutdown \u2014 the compressor runs, gets too hot, and the safety trips it off. This unit has had 2 similar events in the past 6 months.", recommendation: "Locate the thermal overload relay on the motor starter panel. Press the reset button and restart the compressor. Monitor it for 5 minutes.", sources: ["IR 2475 Service Manual, \u00A78.3", "WO #41873 \u2014 oil top-off resolved same issue 4 months ago"], yesLabel: "Yes, it\u2019s running fine now.", noLabel: "No, it tripped again.", resolution: "Great \u2014 the thermal overload reset resolved the issue. I\u2019ve logged this to the work order. Keep an eye on it over the next few hours." },
+        { id: "step2", analysis: "Since the thermal reset didn\u2019t hold, the issue may be related to cooling. Let\u2019s check the oil level and ventilation.", recommendation: "Check the compressor oil sight glass \u2014 the level should be between the min and max marks. Also inspect the cooling fins and fan for debris or blockage. Clean if needed.", sources: ["IR 2475 Service Manual, \u00A75.2", "IR 2475 Quick Start Guide, p.12"], yesLabel: "Yes, oil was low. Topped off and running.", noLabel: "No, oil is fine and still tripping.", resolution: "Low oil was the root cause. I\u2019ve updated the PM schedule to include a bi-weekly oil check and logged this to the work order." },
+        { id: "step3", analysis: "With thermal reset and cooling both checked, the issue may be electrical \u2014 possibly a failing contactor or capacitor.", recommendation: "Inspect the motor starter contactor for pitting or burn marks. Check the run capacitor with a multimeter \u2014 it should read within \u00B110% of the rated microfarads on the label.", sources: ["IR 2475 Service Manual, \u00A79.1", "WO #38102 \u2014 unloader valve replacement, similar symptoms"], yesLabel: "Found a burned contactor. Replacing it.", noLabel: "Everything looks fine electrically.", resolution: "Contactor failure confirmed. I\u2019ve created a parts request for a replacement and logged the diagnosis." },
+      ],
+      escalation: { text: "I\u2019ve worked through the most likely causes based on the service manual and work history. This may need a deeper inspection by a specialist.", expert: { name: "Mike Chen", title: "Senior Compressor Technician", availability: "Available today" } },
+    };
+
+    const SOURCE_DATA = {
+      files: [
+        { name: "IR_2475_Service_Manual.pdf", sections: [{ ref: "\u00A78.3 \u2014 Thermal Overload Protection", pages: "pp. 142\u2013148" }, { ref: "\u00A75.2 \u2014 Lubrication System", pages: "pp. 87\u201394" }, { ref: "\u00A79.1 \u2014 Electrical Components", pages: "pp. 156\u2013163" }] },
+        { name: "IR_2475_Quick_Start_Guide.pdf", sections: [{ ref: "Troubleshooting Checklist", pages: "pp. 10\u201314" }, { ref: "Oil Level Check", pages: "p. 12" }] },
+      ],
+      workOrders: [
+        { number: "41873", title: "Thermal shutdown \u2014 oil top-off", date: "4 months ago", assignee: "J. Torres", summary: { diagnosis: "Compressor tripping on thermal overload after 15 min run time. Oil sight glass showed level below minimum mark.", repairs: ["Topped off compressor oil (SAE 30)", "Cleaned cooling fins", "Reset thermal overload"], status: "Resolved \u2014 unit ran 8 hrs post-repair without issue", recommendations: ["Add oil check to weekly PM", "Monitor run temps for 30 days"] } },
+        { number: "38102", title: "Unloader valve replacement", date: "8 months ago", assignee: "M. Chen", summary: { diagnosis: "Compressor not unloading between cycles. Pressure building above cutoff.", repairs: ["Replaced unloader valve assembly", "Calibrated pressure switch"], status: "Resolved", recommendations: ["Inspect unloader valve at 6-month intervals"] } },
+      ],
+    };
+
+    const SourcesModal = ({ open, onClose }) => {
+      const [viewType, setViewType] = useState("files");
+      const [selectedWO, setSelectedWO] = useState(null);
+      const [dropdownOpen, setDropdownOpen] = useState(false);
+      if (!open) return null;
+      const ov = { position: "absolute", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end", justifyContent: "center" };
+      const pn = { background: COLORS.bgPrimary, borderRadius: `${RADIUS["3x"]}px ${RADIUS["3x"]}px 0 0`, width: "100%", maxHeight: "75%", display: "flex", flexDirection: "column", animation: "slideUp 0.25s ease-out" };
+      const hd = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: `${SPACING.md}px`, borderBottom: `1px solid ${COLORS.strokeDefault}`, flexShrink: 0 };
+      if (selectedWO) {
+        const wo = SOURCE_DATA.workOrders.find(w => w.number === selectedWO);
+        return <div style={ov} onClick={onClose}><div style={pn} onClick={e => e.stopPropagation()}><div style={hd}><button onClick={() => setSelectedWO(null)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 14, fontWeight: 600, color: COLORS.textInformative }}><Icon name="chevronLeft" size={20} color={COLORS.textInformative} />Back</button><button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><Icon name="close" size={20} color={COLORS.textSecondary} /></button></div><div style={{ flex: 1, overflowY: "auto", padding: SPACING.md }}><div style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary, marginBottom: 4 }}>WO #{wo.number}</div><div style={{ fontSize: 16, fontWeight: 600, color: COLORS.textPrimary, marginBottom: 16 }}>{wo.title}</div>{[{ title: "Diagnosis & Findings", content: wo.summary.diagnosis }, { title: "Repairs Performed", content: wo.summary.repairs.map((r, i) => <div key={i} style={{ marginBottom: 2 }}>{"\u2022"} {r}</div>) }, { title: "Current Status", content: wo.summary.status }, { title: "Recommendations", content: wo.summary.recommendations.map((r, i) => <div key={i} style={{ marginBottom: 2 }}>{"\u2022"} {r}</div>) }].map((s, i) => <div key={i} style={{ marginBottom: 16 }}><div style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{s.title}</div><div style={{ fontSize: 14, lineHeight: "20px", color: COLORS.textPrimary }}>{s.content}</div></div>)}</div></div></div>;
+      }
+      return <div style={ov} onClick={onClose}><div style={pn} onClick={e => e.stopPropagation()}><div style={hd}><div style={{ fontSize: 16, fontWeight: 600, color: COLORS.textPrimary }}>Sources</div><button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><Icon name="close" size={20} color={COLORS.textSecondary} /></button></div><div style={{ padding: `${SPACING.sm}px ${SPACING.md}px`, borderBottom: `1px solid ${COLORS.strokeDefault}`, position: "relative" }}><button onClick={() => setDropdownOpen(!dropdownOpen)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "8px 12px", background: COLORS.bgSecondary, border: `1px solid ${COLORS.strokeDefault}`, borderRadius: RADIUS["1x"], cursor: "pointer", fontSize: 14, color: COLORS.textPrimary }}><span>{viewType === "files" ? "Files" : "Work order summaries"}</span><Icon name="chevronDown" size={16} color={COLORS.textSecondary} /></button>{dropdownOpen && <div style={{ position: "absolute", left: SPACING.md, right: SPACING.md, top: "100%", background: COLORS.bgPrimary, border: `1px solid ${COLORS.strokeDefault}`, borderRadius: RADIUS["1x"], zIndex: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>{["files", "workOrders"].map(type => <button key={type} onClick={() => { setViewType(type); setDropdownOpen(false); }} style={{ display: "block", width: "100%", padding: "10px 12px", background: viewType === type ? COLORS.bgSecondary : "none", border: "none", cursor: "pointer", fontSize: 14, color: COLORS.textPrimary, textAlign: "left" }}>{type === "files" ? "Files" : "Work order summaries"}</button>)}</div>}</div><div style={{ flex: 1, overflowY: "auto" }}>{viewType === "files" ? SOURCE_DATA.files.map((file, fi) => <div key={fi}><div style={{ padding: `${SPACING.sm}px ${SPACING.md}px`, fontSize: 12, fontWeight: 600, color: COLORS.textSecondary, textTransform: "uppercase", letterSpacing: 0.5, background: COLORS.bgSecondary }}>{file.name}</div>{file.sections.map((s, si) => <div key={si} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: `12px ${SPACING.md}px`, borderBottom: `1px solid ${COLORS.strokeDefault}` }}><div><div style={{ fontSize: 14, color: COLORS.textPrimary, lineHeight: "20px" }}>{s.ref}</div><div style={{ fontSize: 12, color: COLORS.textSecondary }}>{s.pages}</div></div><Icon name="externalLink" size={16} color={COLORS.textSecondary} /></div>)}</div>) : SOURCE_DATA.workOrders.map((wo, wi) => <button key={wi} onClick={() => setSelectedWO(wo.number)} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: `12px ${SPACING.md}px`, background: "none", border: "none", borderBottom: `1px solid ${COLORS.strokeDefault}`, cursor: "pointer", textAlign: "left" }}><div style={{ width: 32, height: 32, borderRadius: RADIUS.full, flexShrink: 0, background: COLORS.bgExpressiveBlue, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textInformative }}>{wo.assignee.split(" ").map(n => n[0]).join("")}</span></div><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 500, color: COLORS.textPrimary, lineHeight: "20px" }}>WO #{wo.number} {"\u2014"} {wo.title}</div><div style={{ fontSize: 12, color: COLORS.textSecondary }}>{wo.assignee} {"\u00B7"} {wo.date}</div></div></button>)}</div></div></div>;
+    };
+
+    const HeaderIconButton = ({ icon, badge, onClick }) => {
+      const [hovered, setHovered] = useState(false);
+      return <button onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: hovered ? COLORS.bgSecondary : "none", border: "none", borderRadius: RADIUS["1x"], cursor: "pointer", position: "relative" }}><Icon name={icon} size={20} color={COLORS.textSecondary} />{badge && <div style={{ position: "absolute", top: 2, right: 1, minWidth: 16, height: 16, borderRadius: RADIUS.full, background: COLORS.textInformative, fontSize: 10, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px", lineHeight: 1 }}>{badge}</div>}</button>;
+    };
+
+    const Header = ({ onClose }) => (
+      <div style={{ display: "flex", alignItems: "center", gap: SPACING.sm, height: 64, padding: `0 ${SPACING.sm}px`, borderBottom: `1px solid ${COLORS.strokeDefault}`, background: COLORS.bgPrimary, flexShrink: 0 }}>
+        <div style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 32, height: 32, borderRadius: RADIUS.full, border: `1px solid ${COLORS.strokeDefault}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}><CopilotOrb size={30} /></div></div>
+        <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 16, fontWeight: 600, color: COLORS.textPrimary, lineHeight: "24px" }}>CoPilot</div><div style={{ fontSize: 12, fontWeight: 400, color: COLORS.textSecondary, lineHeight: "18px" }}>{SCENARIO.asset.name}</div></div>
+        <div style={{ display: "flex", alignItems: "center" }}><HeaderIconButton icon="comments" badge={2} /><HeaderIconButton icon="question" /><HeaderIconButton icon="close" onClick={onClose} /></div>
+      </div>
+    );
+
+    const ActionPill = ({ icon, label, onClick }) => {
+      const [hovered, setHovered] = useState(false);
+      return <button onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ display: "flex", alignItems: "center", gap: SPACING.sm, padding: `${SPACING.sm}px ${SPACING.md}px`, background: hovered ? COLORS.bgExpressiveBlue : COLORS.bgPrimaryAccent, border: "none", borderRadius: RADIUS.full, cursor: "pointer", flexShrink: 0, transition: "background 0.15s ease" }}><div style={{ width: 28, height: 28, borderRadius: RADIUS.full, background: COLORS.bgExpressiveBlue, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={20} color={COLORS.textInformative} /></div><span style={{ fontSize: 16, fontWeight: 600, color: COLORS.textInformative, lineHeight: "24px", whiteSpace: "nowrap" }}>{label}</span></button>;
+    };
+
+    const StartScreen = ({ onAction }) => (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: SPACING.lg, padding: SPACING.md }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: SPACING.lg }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: SPACING.md }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: SPACING.xs }}><div style={{ fontSize: 14, fontWeight: 600, color: COLORS.textSecondary, lineHeight: "20px" }}>WO #{SCENARIO.wo.number}</div><div style={{ fontSize: 20, fontWeight: 600, color: COLORS.textPrimary, lineHeight: "28px" }}>{SCENARIO.wo.title}</div></div>
+            <div style={{ display: "flex", alignItems: "center", gap: SPACING.sm }}><AssetAvatar size={24} /><span style={{ fontSize: 14, color: COLORS.textSecondary, lineHeight: "20px" }}>{SCENARIO.asset.name} {"\u2014"} {SCENARIO.asset.id}</span></div>
+          </div>
+          <div style={{ fontSize: 16, lineHeight: "24px", color: COLORS.textPrimary }}><p style={{ margin: "0 0 16px 0" }}>{SCENARIO.wo.description}</p><p style={{ margin: 0 }}>{SCENARIO.wo.history}</p></div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: SPACING.sm, flexShrink: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.textSecondary, lineHeight: "20px" }}>Get started</div>
+          <div style={{ display: "flex", gap: SPACING.sm, overflowX: "auto", paddingBottom: 4 }}>
+            <ActionPill icon="mechanical" label="Troubleshoot issue" onClick={() => onAction("troubleshoot")} />
+            <ActionPill icon="library" label="Ask manual" onClick={() => onAction("manual")} />
+            <ActionPill icon="workOrder" label="Get work history summary" onClick={() => onAction("history")} />
+          </div>
+        </div>
+      </div>
+    );
+
+    const SourcesButton = ({ onClick }) => {
+      const [hovered, setHovered] = useState(false);
+      return <button onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ display: "flex", alignItems: "center", gap: 0, padding: `${SPACING.xs}px ${SPACING.sm}px`, background: hovered ? COLORS.bgSecondary : "none", border: "none", borderRadius: RADIUS.full, cursor: "pointer", transition: "background 0.15s ease" }}><span style={{ fontSize: 14, fontWeight: 600, color: COLORS.textSecondary, padding: "0 4px" }}>Sources</span><div style={{ display: "flex", alignItems: "center", paddingRight: 4 }}><div style={{ width: 24, height: 24, borderRadius: RADIUS.full, marginRight: -4, border: `1px solid ${COLORS.strokeDefault}`, overflow: "hidden", background: "linear-gradient(135deg, #1e3a5f, #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3 }}><Icon name="file" size={14} color="rgba(255,255,255,0.8)" /></div><div style={{ width: 24, height: 24, borderRadius: RADIUS.full, marginRight: -4, border: `1px solid ${COLORS.strokeDefault}`, overflow: "hidden", background: COLORS.bgExpressiveBlue, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon name="workOrder" size={14} color={COLORS.textInformative} /></div><div style={{ width: 24, height: 24, borderRadius: RADIUS.full, border: `1px solid ${COLORS.strokeDefault}`, background: COLORS.bgSecondary, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1, fontSize: 9, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: -0.3 }}>+2</div></div></button>;
+    };
+
+    const CoPilotMessage = ({ children, onSourcesClick, isNew = false }) => {
+      const [visible, setVisible] = useState(!isNew);
+      useEffect(() => { if (isNew) { const t = setTimeout(() => setVisible(true), 50); return () => clearTimeout(t); } }, [isNew]);
+      return <div style={{ display: "flex", flexDirection: "column", gap: SPACING.sm, padding: `0 ${SPACING.md}px`, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease, transform 0.3s ease" }}><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}><div style={{ display: "flex", alignItems: "center", gap: SPACING.xs }}><CopilotOrb size={24} /><span style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary, lineHeight: "20px" }}>CoPilot</span></div>{onSourcesClick && <SourcesButton onClick={onSourcesClick} />}</div><div style={{ fontSize: 14, lineHeight: "20px", color: COLORS.textPrimary }}>{children}</div></div>;
+    };
+
+    const UserMessage = ({ text, isNew = false }) => {
+      const [visible, setVisible] = useState(!isNew);
+      useEffect(() => { if (isNew) { const t = setTimeout(() => setVisible(true), 50); return () => clearTimeout(t); } }, [isNew]);
+      return <div style={{ display: "flex", justifyContent: "flex-end", padding: `0 ${SPACING.md}px`, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease, transform 0.3s ease" }}><div style={{ maxWidth: 320, padding: `12px ${SPACING.md}px`, background: COLORS.bgSecondary, borderRadius: RADIUS["3x"], fontSize: 14, lineHeight: "20px", color: COLORS.textPrimary }}>{text}</div></div>;
+    };
+
+    const TroubleshootingCard = ({ recommendation, sources = [] }) => (
+      <div style={{ padding: `0 ${SPACING.md}px` }}><div style={{ background: COLORS.bgPrimaryAccent, borderRadius: RADIUS["2x"], padding: SPACING.md, display: "flex", flexDirection: "column", gap: SPACING.md }}><div style={{ display: "flex", flexDirection: "column", gap: SPACING.xxs }}><div style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary, lineHeight: "18px" }}>Recommended action</div><div style={{ fontSize: 14, lineHeight: "20px", color: COLORS.textPrimary }}>{recommendation}</div></div>{sources.length > 0 && <div style={{ display: "flex", flexDirection: "column", gap: SPACING.xs }}>{sources.map((s, i) => <div key={i} style={{ display: "inline-flex", alignSelf: "flex-start", padding: `3px ${SPACING.xs}px`, background: COLORS.bgExpressiveBlue, borderRadius: RADIUS["1x"] }}><span style={{ fontSize: 12, fontWeight: 600, color: COLORS.textInformative, lineHeight: "18px", padding: "0 2px" }}>{s}</span></div>)}</div>}</div></div>
+    );
+
+    const ResolutionChip = ({ type, label, onClick }) => {
+      const [hovered, setHovered] = useState(false);
+      const pos = type === "positive";
+      const bg = pos ? COLORS.bgFeedbackPositive : COLORS.bgFeedbackNegative;
+      const color = pos ? COLORS.textPositive : COLORS.textNegative;
+      return <button onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ display: "inline-flex", alignItems: "center", alignSelf: "flex-start", padding: SPACING.xs, background: bg, border: "none", borderRadius: RADIUS["1x"], cursor: "pointer", opacity: hovered ? 0.85 : 1, transition: "opacity 0.15s ease" }}><div style={{ width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name={pos ? "check" : "close"} size={20} color={color} /></div><span style={{ fontSize: 14, fontWeight: 600, color, lineHeight: "20px", padding: `0 ${SPACING.xs}px` }}>{label}</span></button>;
+    };
+
+    const ResolutionPrompt = ({ yesLabel, noLabel, onYes, onNo }) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: SPACING.md, padding: `0 ${SPACING.md}px` }}><div style={{ fontSize: 14, lineHeight: "20px", color: COLORS.textPrimary, textAlign: "center" }}>Did this resolve the issue?</div><div style={{ display: "flex", flexDirection: "column", gap: SPACING.xs }}><ResolutionChip type="positive" label={yesLabel} onClick={onYes} /><ResolutionChip type="negative" label={noLabel} onClick={onNo} /></div></div>
+    );
+
+    const FeedbackBar = () => {
+      const [feedback, setFeedback] = useState(null);
+      return <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", padding: `0 ${SPACING.sm}px`, gap: SPACING.xs }}>{["thumbs-up", "thumbs-down"].map(icon => <button key={icon} onClick={() => setFeedback(icon)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: feedback === icon ? COLORS.bgSecondary : "none", border: "none", borderRadius: RADIUS["1x"], cursor: "pointer", opacity: feedback && feedback !== icon ? 0.3 : 1, transition: "opacity 0.15s ease, background 0.15s ease" }}><Icon name={icon} size={20} color={COLORS.textSecondary} /></button>)}</div>;
+    };
+
+    const TypingIndicator = () => (
+      <div style={{ padding: `0 ${SPACING.md}px` }}><div style={{ display: "flex", alignItems: "center", gap: SPACING.xs, marginBottom: SPACING.sm }}><CopilotOrb size={24} /><span style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary }}>CoPilot</span></div><div style={{ display: "flex", gap: 4, padding: "4px 0" }}>{[0, 1, 2].map(i => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: COLORS.strokeDefault, animation: `typingBounce 1.2s ease-in-out ${i * 0.15}s infinite` }} />)}</div></div>
+    );
+
+    const EscalationCard = ({ expert, onRequest }) => (
+      <div style={{ padding: `0 ${SPACING.md}px` }}><div style={{ background: COLORS.bgPrimaryAccent, borderRadius: RADIUS["2x"], padding: SPACING.md, display: "flex", flexDirection: "column", gap: 12 }}><div style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary, textTransform: "uppercase", letterSpacing: 0.5 }}>Recommended specialist</div><div style={{ display: "flex", alignItems: "center", gap: 12 }}><div style={{ width: 40, height: 40, borderRadius: RADIUS.full, background: COLORS.bgExpressiveBlue, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontSize: 16, fontWeight: 600, color: COLORS.textInformative }}>{expert.name.split(" ").map(n => n[0]).join("")}</span></div><div><div style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary, lineHeight: "20px" }}>{expert.name}</div><div style={{ fontSize: 12, color: COLORS.textSecondary, lineHeight: "18px" }}>{expert.title} {"\u00B7"} {expert.availability}</div></div></div><button onClick={onRequest} style={{ width: "100%", padding: "10px 16px", background: COLORS.textInformative, color: "#fff", border: "none", borderRadius: RADIUS["2x"], fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Request assistance</button></div></div>
+    );
+
+    const SessionSummary = ({ stepsAttempted, resolution }) => (
+      <div style={{ padding: `0 ${SPACING.md}px` }}><div style={{ background: COLORS.bgSecondary, borderRadius: RADIUS["2x"], border: `1px solid ${COLORS.strokeDefault}`, padding: SPACING.md }}><div style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Session Summary {"\u2014"} Auto-attached to WO #{SCENARIO.wo.number}</div><div style={{ fontSize: 13, lineHeight: "20px", color: COLORS.textPrimary }}><strong>Steps attempted:</strong> {stepsAttempted.join(" \u2192 ")}</div>{resolution && <div style={{ fontSize: 13, lineHeight: "20px", color: COLORS.textPrimary, marginTop: 4 }}><strong>Outcome:</strong> {resolution}</div>}</div></div>
+    );
+
+    const InputToolbarButton = ({ icon }) => {
+      const [hovered, setHovered] = useState(false);
+      return <button onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: hovered ? COLORS.bgSecondary : "none", border: "none", borderRadius: RADIUS["1x"], cursor: "pointer" }}><Icon name={icon} size={20} color={COLORS.textSecondary} /></button>;
+    };
+
+    const InputBar = ({ value, onChange, onSubmit, placeholder = "Ask CoPilot", disabled = false }) => (
+      <div style={{ background: COLORS.bgPrimary, flexShrink: 0, display: "flex", flexDirection: "column", gap: SPACING.xs, padding: SPACING.md, paddingBottom: SPACING.sm }}>
+        <div style={{ border: `1px solid ${COLORS.strokeDefault}`, borderRadius: RADIUS["1x"], padding: 12, minHeight: 44, maxHeight: 120 }}><textarea value={value} onChange={e => onChange(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); } }} placeholder={placeholder} disabled={disabled} style={{ width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, lineHeight: "20px", color: COLORS.textPrimary, background: "transparent", fontFamily: "inherit", minHeight: 20, maxHeight: 96, padding: 0 }} rows={1} /></div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}><div style={{ display: "flex", alignItems: "center", gap: 0 }}><InputToolbarButton icon="mic" /><InputToolbarButton icon="image" /><div style={{ display: "flex", alignItems: "center", gap: 4, padding: `${SPACING.xs}px ${SPACING.sm}px`, borderRadius: RADIUS.full, cursor: "pointer" }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ width: 20, height: 20, borderRadius: RADIUS.full, marginRight: -3, background: "linear-gradient(135deg, #1e3a5f, #2563eb)", border: `1px solid ${COLORS.strokeDefault}`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon name="file" size={11} color="rgba(255,255,255,0.8)" /></div><div style={{ width: 20, height: 20, borderRadius: RADIUS.full, background: COLORS.bgExpressiveBlue, border: `1px solid ${COLORS.strokeDefault}`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}><Icon name="workOrder" size={11} color={COLORS.textInformative} /></div></div><span style={{ fontSize: 12, fontWeight: 600, color: COLORS.textSecondary }}>All sources</span></div></div><button onClick={onSubmit} disabled={disabled || !value.trim()} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: value.trim() ? "pointer" : "default", borderRadius: RADIUS["1x"], opacity: value.trim() ? 1 : 0.35 }}><Icon name="send" size={20} color={COLORS.textInformative} /></button></div>
+        <div style={{ fontSize: 12, color: COLORS.textSecondary, textAlign: "center", lineHeight: "18px", padding: `${SPACING.xxs}px ${SPACING.md}px` }}>Always validate AI generated content for accuracy.</div>
+      </div>
+    );
+
+    function TroubleshootingPrototype() {
+      const [phase, setPhase] = useState("start");
+      const [messages, setMessages] = useState([]);
+      const [currentStepIndex, setCurrentStepIndex] = useState(0);
+      const [stepsAttempted, setStepsAttempted] = useState([]);
+      const [showTyping, setShowTyping] = useState(false);
+      const [showResolution, setShowResolution] = useState(false);
+      const [resolutionText, setResolutionText] = useState(null);
+      const [inputValue, setInputValue] = useState("");
+      const [sourcesModalOpen, setSourcesModalOpen] = useState(false);
+      const [showSummary, setShowSummary] = useState(false);
+      const [showEscalation, setShowEscalation] = useState(false);
+      const scrollRef = useRef(null);
+
+      useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, showTyping, showResolution, showSummary, showEscalation, phase]);
+
+      const handleReset = () => { setPhase("start"); setMessages([]); setCurrentStepIndex(0); setStepsAttempted([]); setShowTyping(false); setShowResolution(false); setResolutionText(null); setInputValue(""); setSourcesModalOpen(false); setShowSummary(false); setShowEscalation(false); };
+      const addTypingThen = (cb, delay = 1200) => { setShowTyping(true); setTimeout(() => { setShowTyping(false); cb(); }, delay); };
+
+      const handleStartAction = (action) => { if (action === "troubleshoot") { setPhase("intake"); addTypingThen(() => { setMessages([{ type: "copilot-questions", key: "intake", isNew: true }]); }, 800); } };
+
+      const handleIntakeSubmit = () => {
+        const userText = inputValue.trim() || SCENARIO.intake.defaultResponse;
+        setInputValue("");
+        setMessages(prev => [...prev, { type: "user", key: "user-intake", text: userText, isNew: true }]);
+        addTypingThen(() => { const step = SCENARIO.steps[0]; setPhase("troubleshooting"); setCurrentStepIndex(0); setStepsAttempted(["Thermal reset"]); setShowResolution(true); setMessages(prev => [...prev, { type: "copilot-analysis", key: "analysis-0", text: step.analysis, isNew: true }, { type: "action-card", key: "card-0", stepIndex: 0, isNew: true }]); }, 1500);
+      };
+
+      const handleYes = () => {
+        const step = SCENARIO.steps[currentStepIndex];
+        setShowResolution(false);
+        setMessages(prev => [...prev, { type: "user-choice", key: `choice-yes-${currentStepIndex}`, text: step.yesLabel, positive: true }]);
+        addTypingThen(() => { setResolutionText(step.resolution); setMessages(prev => [...prev, { type: "copilot-text", key: `resolution-${currentStepIndex}`, text: step.resolution, isNew: true }]); setTimeout(() => setShowSummary(true), 500); }, 1000);
+      };
+
+      const handleNo = () => {
+        const step = SCENARIO.steps[currentStepIndex];
+        setShowResolution(false);
+        setMessages(prev => [...prev, { type: "user-choice", key: `choice-no-${currentStepIndex}`, text: step.noLabel, positive: false }]);
+        const nextIndex = currentStepIndex + 1;
+        if (nextIndex < SCENARIO.steps.length) {
+          addTypingThen(() => { const nextStep = SCENARIO.steps[nextIndex]; setCurrentStepIndex(nextIndex); setStepsAttempted(prev => [...prev, nextStep.id]); setShowResolution(true); setMessages(prev => [...prev, { type: "copilot-analysis", key: `analysis-${nextIndex}`, text: nextStep.analysis, isNew: true }, { type: "action-card", key: `card-${nextIndex}`, stepIndex: nextIndex, isNew: true }]); }, 1500);
+        } else {
+          addTypingThen(() => { setMessages(prev => [...prev, { type: "copilot-text", key: "escalation-text", text: SCENARIO.escalation.text, isNew: true }]); setTimeout(() => setShowEscalation(true), 400); }, 1500);
+        }
+      };
+
+      const renderMessage = (msg) => {
+        switch (msg.type) {
+          case "copilot-questions": return <CoPilotMessage key={msg.key} onSourcesClick={() => setSourcesModalOpen(true)} isNew={msg.isNew}><ol style={{ margin: 0, paddingLeft: 24, display: "flex", flexDirection: "column", gap: 4 }}>{SCENARIO.intake.questions.map((q, i) => <li key={i} style={{ fontSize: 16, lineHeight: "24px" }}>{q}</li>)}</ol></CoPilotMessage>;
+          case "user": return <UserMessage key={msg.key} text={msg.text} isNew={msg.isNew} />;
+          case "copilot-analysis": return <CoPilotMessage key={msg.key} onSourcesClick={() => setSourcesModalOpen(true)} isNew={msg.isNew}><span style={{ fontSize: 14, lineHeight: "20px" }}>{msg.text}</span></CoPilotMessage>;
+          case "action-card": return <TroubleshootingCard key={msg.key} recommendation={SCENARIO.steps[msg.stepIndex].recommendation} sources={SCENARIO.steps[msg.stepIndex].sources} />;
+          case "user-choice": return <div key={msg.key} style={{ display: "flex", justifyContent: "flex-start", padding: `0 ${SPACING.md}px` }}><div style={{ display: "inline-flex", alignItems: "center", padding: SPACING.xs, background: msg.positive ? COLORS.bgFeedbackPositive : COLORS.bgFeedbackNegative, borderRadius: RADIUS["1x"], opacity: 0.7 }}><div style={{ width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name={msg.positive ? "check" : "close"} size={20} color={msg.positive ? COLORS.textPositive : COLORS.textNegative} /></div><span style={{ fontSize: 14, fontWeight: 600, padding: `0 ${SPACING.xs}px`, color: msg.positive ? COLORS.textPositive : COLORS.textNegative }}>{msg.text}</span></div></div>;
+          case "copilot-text": return <CoPilotMessage key={msg.key} isNew={msg.isNew}><span style={{ fontSize: 14, lineHeight: "20px" }}>{msg.text}</span></CoPilotMessage>;
+          default: return null;
+        }
+      };
+
+      return (
+        <div style={{ width: 402, height: 874, background: COLORS.bgPrimary, display: "flex", flexDirection: "column", position: "relative", fontFamily: "-apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif", overflow: "hidden", borderRadius: 20, boxShadow: "0 8px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", margin: "0 auto" }}>
+          <style>{`@keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } } @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } } textarea::placeholder { color: ${COLORS.textPlaceholder}; } * { box-sizing: border-box; }`}</style>
+          <Header onClose={handleReset} />
+          <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
+            {phase === "start" ? <StartScreen onAction={handleStartAction} /> : (
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: SPACING.lg, padding: `${SPACING.md}px 0` }}>
+                {messages.map(renderMessage)}
+                {showTyping && <TypingIndicator />}
+                {showResolution && !showTyping && <><ResolutionPrompt yesLabel={SCENARIO.steps[currentStepIndex].yesLabel} noLabel={SCENARIO.steps[currentStepIndex].noLabel} onYes={handleYes} onNo={handleNo} /><FeedbackBar /></>}
+                {showEscalation && <EscalationCard expert={SCENARIO.escalation.expert} onRequest={() => { setShowEscalation(false); addTypingThen(() => { setMessages(prev => [...prev, { type: "copilot-text", key: "escalation-confirmed", text: `I\u2019ve sent a request to ${SCENARIO.escalation.expert.name}. They\u2019ll reach out within the hour. In the meantime, I\u2019ve saved all diagnostic info to this work order.`, isNew: true }]); setTimeout(() => setShowSummary(true), 500); }, 1000); }} />}
+                {showSummary && <SessionSummary stepsAttempted={stepsAttempted} resolution={resolutionText || "Escalated to specialist"} />}
+              </div>
+            )}
+          </div>
+          <InputBar value={inputValue} onChange={setInputValue} onSubmit={phase === "intake" ? handleIntakeSubmit : () => {}} disabled={phase !== "intake" && phase !== "start"} placeholder={phase === "intake" ? "Describe what\u2019s happening\u2026" : "Ask CoPilot"} />
+          <SourcesModal open={sourcesModalOpen} onClose={() => setSourcesModalOpen(false)} />
+        </div>
+      );
+    }
+
+    ReactDOM.render(<TroubleshootingPrototype />, document.getElementById("root"));
+  </script>
+</body>
+</html>
