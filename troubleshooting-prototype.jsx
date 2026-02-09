@@ -167,38 +167,51 @@ const SCENARIO = {
     ],
     defaultResponse: "It runs for about 10 minutes then shuts off. No weird smells. Started this morning.",
   },
+  triage: {
+    message: "Sounds like thermal overload \u2014 this unit\u2019s tripped twice in the past 6 months for similar reasons. On these IR 2475s, that usually comes down to three things: the overload relay, oil and cooling, or something electrical.",
+    prompt: "Have you already looked into any of these?",
+    checks: [
+      { id: "relay", label: "Reset the thermal overload relay", summary: "the relay reset" },
+      { id: "oil", label: "Checked oil level & cooling", summary: "oil and cooling" },
+      { id: "electrical", label: "Inspected electrical components", summary: "the electrical side" },
+    ],
+    noneLabel: "Haven\u2019t tried any of these yet",
+  },
   steps: [
     {
-      id: "step1",
-      analysis: "This sounds like a thermal overload shutdown \u2014 the compressor runs, gets too hot, and the safety trips it off. This unit has had 2 similar events in the past 6 months.",
-      recommendation: "Locate the thermal overload relay on the motor starter panel. Press the reset button and restart the compressor. Monitor it for 5 minutes.",
+      id: "relay",
+      label: "Thermal reset",
+      analysis: "This unit\u2019s had 2 thermal overload trips in the past 6 months. WO #41873 had the same symptom and was resolved with a relay reset and oil top-off.",
+      recommendation: "Check the thermal overload relay on the motor starter panel. If it\u2019s tripped, reset it and let the compressor run for about 5 minutes to see if it holds.",
       sources: [
         "IR 2475 Service Manual, \u00A78.3",
-        "WO #41873 \u2014 oil top-off resolved same issue 4 months ago",
+        "WO #41873 \u2014 same symptom, resolved with reset + oil top-off",
       ],
       yesLabel: "Yes, it\u2019s running fine now.",
       noLabel: "No, it tripped again.",
       resolution: "Great \u2014 the thermal overload reset resolved the issue. I\u2019ve logged this to the work order. Keep an eye on it over the next few hours.",
     },
     {
-      id: "step2",
-      analysis: "Since the thermal reset didn\u2019t hold, the issue may be related to cooling. Let\u2019s check the oil level and ventilation.",
-      recommendation: "Check the compressor oil sight glass \u2014 the level should be between the min and max marks. Also inspect the cooling fins and fan for debris or blockage. Clean if needed.",
+      id: "oil",
+      label: "Oil & cooling",
+      analysis: "I\u2019d check oil and cooling next. Last time this happened (WO #41873), low oil was causing the overheating.",
+      recommendation: "Check the oil sight glass \u2014 level should be between the min and max marks. Also take a look at the cooling fins and fan for any debris or blockage.",
       sources: [
         "IR 2475 Service Manual, \u00A75.2",
-        "IR 2475 Quick Start Guide, p.12",
+        "WO #41873 \u2014 oil top-off resolved same issue 4 months ago",
       ],
       yesLabel: "Yes, oil was low. Topped off and running.",
       noLabel: "No, oil is fine and still tripping.",
       resolution: "Low oil was the root cause. I\u2019ve updated the PM schedule to include a bi-weekly oil check and logged this to the work order.",
     },
     {
-      id: "step3",
-      analysis: "With thermal reset and cooling both checked, the issue may be electrical \u2014 possibly a failing contactor or capacitor.",
-      recommendation: "Inspect the motor starter contactor for pitting or burn marks. Check the run capacitor with a multimeter \u2014 it should read within \u00B110% of the rated microfarads on the label.",
+      id: "electrical",
+      label: "Electrical",
+      analysis: "I\u2019m thinking electrical. WO #38102 on a similar unit had comparable symptoms and it turned out to be the contactor.",
+      recommendation: "Take a look at the motor starter contactor for any pitting or burn marks. If you have a multimeter handy, check the run capacitor \u2014 it should read within \u00B110% of the rated microfarads on the label.",
       sources: [
         "IR 2475 Service Manual, \u00A79.1",
-        "WO #38102 \u2014 unloader valve replacement, similar symptoms",
+        "WO #38102 \u2014 similar symptoms, contactor replacement",
       ],
       yesLabel: "Found a burned contactor. Replacing it.",
       noLabel: "Everything looks fine electrically.",
@@ -206,7 +219,7 @@ const SCENARIO = {
     },
   ],
   escalation: {
-    text: "I\u2019ve worked through the most likely causes based on the service manual and work history. This may need a deeper inspection by a specialist.",
+    text: "I\u2019ve gone through the most likely causes based on the service history and manual for this unit. This might need hands-on diagnosis by someone who\u2019s worked on these before.",
     expert: {
       name: "Mike Chen",
       title: "Senior Compressor Technician",
@@ -870,6 +883,105 @@ const SessionSummary = ({ stepsAttempted, resolution }) => (
   </div>
 );
 
+// ─── Triage Checklist ────────────────────────────────────────────────────
+const TriageChecklist = ({ checks, noneLabel, onSubmit }) => {
+  const [selected, setSelected] = useState(new Set());
+  const [submitted, setSubmitted] = useState(false);
+
+  const toggle = (id) => {
+    if (submitted) return;
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelected(next);
+  };
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    onSubmit(selected);
+  };
+
+  const handleNone = () => {
+    setSubmitted(true);
+    onSubmit(new Set(["none"]));
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: SPACING.sm }}>
+      {checks.map(check => (
+        <TriageChip
+          key={check.id}
+          label={check.label}
+          selected={selected.has(check.id)}
+          disabled={submitted}
+          onClick={() => toggle(check.id)}
+        />
+      ))}
+      <div style={{ display: "flex", alignItems: "center", gap: SPACING.sm, marginTop: SPACING.xs }}>
+        {selected.size > 0 && !submitted && (
+          <button onClick={handleSubmit} style={{
+            padding: "8px 20px",
+            background: COLORS.textInformative, color: "#fff",
+            border: "none", borderRadius: RADIUS.full,
+            fontSize: 14, fontWeight: 600, cursor: "pointer",
+          }}>
+            Continue
+          </button>
+        )}
+        {!submitted && selected.size === 0 && (
+          <button onClick={handleNone} style={{
+            padding: "8px 0",
+            background: "none", color: COLORS.textInformative,
+            border: "none", fontSize: 14, fontWeight: 500,
+            cursor: "pointer", textDecoration: "underline",
+            textUnderlineOffset: "2px",
+          }}>
+            {noneLabel}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TriageChip = ({ label, selected, disabled, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      disabled={disabled}
+      style={{
+        display: "flex", alignItems: "center", gap: SPACING.sm,
+        padding: `10px ${SPACING.md}px`,
+        background: selected ? COLORS.bgExpressiveBlue : (hovered && !disabled ? COLORS.bgSecondary : COLORS.bgPrimary),
+        border: `1.5px solid ${selected ? COLORS.textInformative : COLORS.strokeDefault}`,
+        borderRadius: RADIUS["2x"],
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled && !selected ? 0.35 : 1,
+        transition: "all 0.15s ease",
+      }}
+    >
+      <div style={{
+        width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+        border: `1.5px solid ${selected ? COLORS.textInformative : COLORS.strokeDefault}`,
+        background: selected ? COLORS.textInformative : "transparent",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        {selected && <Icon name="check" size={14} color="#fff" />}
+      </div>
+      <span style={{
+        fontSize: 14, fontWeight: 500,
+        color: selected ? COLORS.textInformative : COLORS.textPrimary,
+        lineHeight: "20px",
+      }}>
+        {label}
+      </span>
+    </button>
+  );
+};
+
 // ─── Input Bar ───────────────────────────────────────────────────────────
 const InputBar = ({ value, onChange, onSubmit, placeholder = "Ask CoPilot", disabled = false }) => (
   <div style={{
@@ -980,9 +1092,11 @@ const GlobalStyles = () => (
 
 // ─── Main App ────────────────────────────────────────────────────────────
 export default function TroubleshootingPrototype() {
-  const [phase, setPhase] = useState("start");
+  const [phase, setPhase] = useState("start"); // start, intake, triage, troubleshooting
   const [messages, setMessages] = useState([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [triageChecked, setTriageChecked] = useState(new Set());
+  const [remainingSteps, setRemainingSteps] = useState([]);
+  const [currentGuidePos, setCurrentGuidePos] = useState(0);
   const [stepsAttempted, setStepsAttempted] = useState([]);
   const [showTyping, setShowTyping] = useState(false);
   const [showResolution, setShowResolution] = useState(false);
@@ -1002,7 +1116,9 @@ export default function TroubleshootingPrototype() {
   const handleReset = () => {
     setPhase("start");
     setMessages([]);
-    setCurrentStepIndex(0);
+    setTriageChecked(new Set());
+    setRemainingSteps([]);
+    setCurrentGuidePos(0);
     setStepsAttempted([]);
     setShowTyping(false);
     setShowResolution(false);
@@ -1030,65 +1146,141 @@ export default function TroubleshootingPrototype() {
     }
   };
 
+  // After intake, go to triage (not directly to troubleshooting)
   const handleIntakeSubmit = () => {
     const userText = inputValue.trim() || SCENARIO.intake.defaultResponse;
     setInputValue("");
     setMessages(prev => [...prev, { type: "user", key: "user-intake", text: userText, isNew: true }]);
 
     addTypingThen(() => {
-      const step = SCENARIO.steps[0];
-      setPhase("troubleshooting");
-      setCurrentStepIndex(0);
-      setStepsAttempted(["Thermal reset"]);
-      setShowResolution(true);
+      setPhase("triage");
       setMessages(prev => [
         ...prev,
-        { type: "copilot-analysis", key: "analysis-0", text: step.analysis, isNew: true },
-        { type: "action-card", key: "card-0", stepIndex: 0, isNew: true },
+        { type: "copilot-triage", key: "triage", isNew: true },
       ]);
     }, 1500);
   };
 
+  // Handle triage checklist submission
+  const handleTriageSubmit = (checked) => {
+    setTriageChecked(checked);
+
+    // Build natural user response text
+    const effectiveChecked = checked.has("none") ? new Set() : checked;
+    let responseText;
+    if (effectiveChecked.size === 0) {
+      responseText = "Haven\u2019t tried any of these yet.";
+    } else {
+      const summaries = SCENARIO.triage.checks
+        .filter(c => effectiveChecked.has(c.id))
+        .map(c => c.summary);
+      if (summaries.length === SCENARIO.triage.checks.length) {
+        responseText = "Already checked all of these. Nothing resolved it.";
+      } else if (summaries.length === 1) {
+        responseText = "Already tried " + summaries[0] + ". Still having the issue.";
+      } else {
+        responseText = "Already tried " + summaries.slice(0, -1).join(", ") + " and " + summaries[summaries.length - 1] + ". Still having the issue.";
+      }
+    }
+
+    setMessages(prev => [...prev, { type: "user", key: "triage-response", text: responseText, isNew: true }]);
+
+    // Determine remaining steps (those not checked in triage)
+    const remaining = SCENARIO.steps
+      .map((s, i) => i)
+      .filter(i => !effectiveChecked.has(SCENARIO.steps[i].id));
+
+    setRemainingSteps(remaining);
+
+    if (remaining.length === 0) {
+      // All steps already tried — escalate
+      addTypingThen(() => {
+        setPhase("troubleshooting");
+        setMessages(prev => [
+          ...prev,
+          { type: "copilot-text", key: "escalation-text", text: SCENARIO.escalation.text, isNew: true },
+        ]);
+        setTimeout(() => setShowEscalation(true), 400);
+      }, 1500);
+    } else {
+      // Build contextual intro based on what was triaged
+      const firstStepIndex = remaining[0];
+      const step = SCENARIO.steps[firstStepIndex];
+      let analysisText = "";
+
+      if (effectiveChecked.size > 0) {
+        const checkedLabels = SCENARIO.steps
+          .filter(s => effectiveChecked.has(s.id))
+          .map(s => s.label.toLowerCase());
+        if (checkedLabels.length === 1) {
+          analysisText = "Good, you\u2019ve already tried " + checkedLabels[0] + ". ";
+        } else {
+          analysisText = "Good, you\u2019ve already ruled out " + checkedLabels.slice(0, -1).join(", ") + " and " + checkedLabels[checkedLabels.length - 1] + ". ";
+        }
+      } else {
+        analysisText = "Let\u2019s start with the most common cause. ";
+      }
+      analysisText += step.analysis;
+
+      addTypingThen(() => {
+        setPhase("troubleshooting");
+        setCurrentGuidePos(0);
+        setStepsAttempted([step.label]);
+        setShowResolution(true);
+        setMessages(prev => [
+          ...prev,
+          { type: "copilot-analysis", key: `analysis-${firstStepIndex}`, text: analysisText, isNew: true },
+          { type: "action-card", key: `card-${firstStepIndex}`, stepIndex: firstStepIndex, isNew: true },
+        ]);
+      }, 1500);
+    }
+  };
+
   const handleYes = () => {
-    const step = SCENARIO.steps[currentStepIndex];
+    const stepIndex = remainingSteps[currentGuidePos];
+    const step = SCENARIO.steps[stepIndex];
     setShowResolution(false);
     setMessages(prev => [
       ...prev,
-      { type: "user-choice", key: `choice-yes-${currentStepIndex}`, text: step.yesLabel, positive: true },
+      { type: "user-choice", key: `choice-yes-${stepIndex}`, text: step.yesLabel, positive: true },
     ]);
 
     addTypingThen(() => {
       setResolutionText(step.resolution);
       setMessages(prev => [
         ...prev,
-        { type: "copilot-text", key: `resolution-${currentStepIndex}`, text: step.resolution, isNew: true },
+        { type: "copilot-text", key: `resolution-${stepIndex}`, text: step.resolution, isNew: true },
       ]);
       setTimeout(() => setShowSummary(true), 500);
     }, 1000);
   };
 
   const handleNo = () => {
-    const step = SCENARIO.steps[currentStepIndex];
+    const stepIndex = remainingSteps[currentGuidePos];
+    const step = SCENARIO.steps[stepIndex];
     setShowResolution(false);
     setMessages(prev => [
       ...prev,
-      { type: "user-choice", key: `choice-no-${currentStepIndex}`, text: step.noLabel, positive: false },
+      { type: "user-choice", key: `choice-no-${stepIndex}`, text: step.noLabel, positive: false },
     ]);
 
-    const nextIndex = currentStepIndex + 1;
-    if (nextIndex < SCENARIO.steps.length) {
+    const nextGuidePos = currentGuidePos + 1;
+    if (nextGuidePos < remainingSteps.length) {
+      const nextStepIndex = remainingSteps[nextGuidePos];
+      const nextStep = SCENARIO.steps[nextStepIndex];
+
       addTypingThen(() => {
-        const nextStep = SCENARIO.steps[nextIndex];
-        setCurrentStepIndex(nextIndex);
-        setStepsAttempted(prev => [...prev, nextStep.id]);
+        setCurrentGuidePos(nextGuidePos);
+        setStepsAttempted(prev => [...prev, nextStep.label]);
         setShowResolution(true);
         setMessages(prev => [
           ...prev,
-          { type: "copilot-analysis", key: `analysis-${nextIndex}`, text: nextStep.analysis, isNew: true },
-          { type: "action-card", key: `card-${nextIndex}`, stepIndex: nextIndex, isNew: true },
+          { type: "copilot-analysis", key: `analysis-${nextStepIndex}`, text: nextStep.analysis, isNew: true },
+          { type: "action-card", key: `card-${nextStepIndex}`, stepIndex: nextStepIndex, isNew: true },
         ]);
       }, 1500);
     } else {
+      // No more steps — escalate
       addTypingThen(() => {
         setMessages(prev => [
           ...prev,
@@ -1097,6 +1289,13 @@ export default function TroubleshootingPrototype() {
         setTimeout(() => setShowEscalation(true), 400);
       }, 1500);
     }
+  };
+
+  const getCurrentStep = () => {
+    if (remainingSteps.length > 0 && currentGuidePos < remainingSteps.length) {
+      return SCENARIO.steps[remainingSteps[currentGuidePos]];
+    }
+    return null;
   };
 
   const renderMessage = (msg) => {
@@ -1109,6 +1308,21 @@ export default function TroubleshootingPrototype() {
                 <li key={i} style={{ fontSize: 16, lineHeight: "24px" }}>{q}</li>
               ))}
             </ol>
+          </CoPilotMessage>
+        );
+
+      case "copilot-triage":
+        return (
+          <CoPilotMessage key={msg.key} onSourcesClick={() => setSourcesModalOpen(true)} isNew={msg.isNew}>
+            <div style={{ display: "flex", flexDirection: "column", gap: SPACING.md }}>
+              <span style={{ fontSize: 14, lineHeight: "20px" }}>{SCENARIO.triage.message}</span>
+              <span style={{ fontSize: 14, lineHeight: "20px", fontWeight: 600 }}>{SCENARIO.triage.prompt}</span>
+              <TriageChecklist
+                checks={SCENARIO.triage.checks}
+                noneLabel={SCENARIO.triage.noneLabel}
+                onSubmit={handleTriageSubmit}
+              />
+            </div>
           </CoPilotMessage>
         );
 
@@ -1168,6 +1382,8 @@ export default function TroubleshootingPrototype() {
     }
   };
 
+  const currentStep = getCurrentStep();
+
   return (
     <div style={{
       width: 402, height: 874, background: COLORS.bgPrimary,
@@ -1196,11 +1412,11 @@ export default function TroubleshootingPrototype() {
 
             {showTyping && <TypingIndicator />}
 
-            {showResolution && !showTyping && (
+            {showResolution && !showTyping && currentStep && (
               <>
                 <ResolutionPrompt
-                  yesLabel={SCENARIO.steps[currentStepIndex].yesLabel}
-                  noLabel={SCENARIO.steps[currentStepIndex].noLabel}
+                  yesLabel={currentStep.yesLabel}
+                  noLabel={currentStep.noLabel}
                   onYes={handleYes}
                   onNo={handleNo}
                 />
