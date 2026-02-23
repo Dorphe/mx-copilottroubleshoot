@@ -18,7 +18,7 @@ export function Chat() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, setMessages, status } = useChat();
+  const { messages, sendMessage, setMessages, status, error } = useChat();
 
   const isLoading = status === "submitted" || status === "streaming";
 
@@ -145,6 +145,13 @@ export function Chat() {
           <div className="flex-1 flex flex-col justify-end gap-8 py-4">
             {messages.map(renderMessage)}
             {status === "submitted" && <TypingIndicator />}
+            {error && (
+              <div className="px-4 max-w-[600px]">
+                <div className="bg-bg-feedback-negative rounded-lg p-3 text-sm text-text-negative">
+                  <strong>Error:</strong> {error.message}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

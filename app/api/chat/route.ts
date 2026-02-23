@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, tool } from "ai";
+import { streamText, tool, convertToModelMessages } from "ai";
 import { z } from "zod";
 import { buildSystemPrompt } from "@/lib/system-prompt";
 
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model: openai("gpt-4o"),
     system: buildSystemPrompt(),
-    messages,
+    messages: await convertToModelMessages(messages),
     tools: {
       show_troubleshooting_card: tool({
         description:
