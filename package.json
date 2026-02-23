@@ -12,6 +12,7 @@
     "@ai-sdk/anthropic": "^3.0.46",
     "@ai-sdk/openai": "^3.0.30",
     "@ai-sdk/react": "^3.0.99",
+    "@vercel/analytics": "^1.6.1",
     "ai": "^6.0.97",
     "next": "16.1.6",
     "react": "19.2.3",
