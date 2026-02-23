@@ -1,4 +1,4 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
 import { streamText, tool } from "ai";
 import { z } from "zod";
 import { buildSystemPrompt } from "@/lib/system-prompt";
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: openai("gpt-4o"),
     system: buildSystemPrompt(),
     messages,
     tools: {
