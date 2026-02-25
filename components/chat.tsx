@@ -93,11 +93,13 @@ export function Chat() {
           );
         } else if (
           part.type === "dynamic-tool" ||
-          part.type === "tool-invocation"
+          part.type.startsWith("tool-")
         ) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const p = part as any;
-          const toolName: string | undefined = p.toolName;
+          // dynamic-tool uses toolName; typed tools use type "tool-{name}"
+          const toolName: string =
+            p.toolName || part.type.replace(/^tool-/, "");
           const args: Record<string, unknown> =
             p.input || p.args || {};
 
