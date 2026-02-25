@@ -23,7 +23,7 @@ export function TroubleshootingCard({
             {recommendation}
           </div>
         </div>
-        {sources.length > 0 && (
+        {(sources || []).length > 0 && (
           <div className="flex items-center gap-1">
             <div className="flex items-center pr-1">
               {sources.slice(0, 2).map((_, i) => (

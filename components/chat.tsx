@@ -146,10 +146,16 @@ export function Chat() {
             elements.push(
               <SessionSummary
                 key={`${message.id}-tool-${i}`}
-                stepsAttempted={args.steps_attempted as string[]}
-                outcome={args.outcome as string}
-                recommendation={args.recommendation as string | undefined}
-                issue={args.issue as string | undefined}
+                stepsAttempted={
+                  Array.isArray(args.steps_attempted)
+                    ? args.steps_attempted
+                    : []
+                }
+                outcome={(args.outcome as string) || ""}
+                recommendation={
+                  (args.recommendation as string) || undefined
+                }
+                issue={(args.issue as string) || undefined}
               />
             );
           }

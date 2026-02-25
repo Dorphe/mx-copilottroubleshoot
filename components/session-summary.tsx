@@ -49,7 +49,7 @@ export function SessionSummary({
             Steps attempted
           </span>
           <span className="text-[16px] leading-[24px] text-text-primary">
-            {stepsAttempted.join(" → ")}
+            {(stepsAttempted || []).join(" → ")}
           </span>
         </div>
 
