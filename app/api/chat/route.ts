@@ -42,6 +42,9 @@ export async function POST(req: Request) {
                 'Array of manual page references, e.g. "Operator\'s Manual, p. 60 — Checking coolant level"'
               ),
           }),
+          execute: async ({ recommendation }) => {
+            return `Displayed troubleshooting card: ${recommendation.slice(0, 50)}...`;
+          },
         }),
         show_triage_card: tool({
           description:
@@ -63,6 +66,9 @@ export async function POST(req: Request) {
                 "Text for the 'none' option, e.g. \"I haven't tried any of these yet.\""
               ),
           }),
+          execute: async ({ items }) => {
+            return `Displayed triage card with ${items.length} checklist items. Waiting for technician response.`;
+          },
         }),
         show_response_options: tool({
           description:
@@ -74,6 +80,9 @@ export async function POST(req: Request) {
                 'Array of response options, e.g. ["Oil was low. Topped off and running.", "Oil is fine and still tripping."]'
               ),
           }),
+          execute: async ({ options }) => {
+            return `Displayed ${options.length} response options. Waiting for technician selection.`;
+          },
         }),
         show_escalation_card: tool({
           description:
@@ -92,6 +101,9 @@ export async function POST(req: Request) {
                 "Brief explanation of why escalation is recommended"
               ),
           }),
+          execute: async ({ expert_name }) => {
+            return `Displayed escalation card recommending ${expert_name}.`;
+          },
         }),
         show_session_summary: tool({
           description:
@@ -118,6 +130,9 @@ export async function POST(req: Request) {
                 "Root cause summary, e.g. 'Thermal overload caused by low compressor oil.'"
               ),
           }),
+          execute: async ({ outcome }) => {
+            return `Displayed session summary. Resolution: ${outcome}`;
+          },
         }),
       },
     });

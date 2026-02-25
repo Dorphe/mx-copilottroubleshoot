@@ -91,12 +91,15 @@ export function Chat() {
               text={part.text}
             />
           );
-        } else if (part.type === "dynamic-tool") {
-          const { toolName } = part;
-          const args = ("input" in part ? part.input : {}) as Record<
-            string,
-            unknown
-          >;
+        } else if (
+          part.type === "dynamic-tool" ||
+          part.type === "tool-invocation"
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const p = part as any;
+          const toolName: string | undefined = p.toolName;
+          const args: Record<string, unknown> =
+            p.input || p.args || {};
 
           if (toolName === "show_troubleshooting_card" && args) {
             elements.push(
