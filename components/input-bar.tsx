@@ -21,7 +21,7 @@ export function InputBar({
 
   return (
     <div className="bg-bg-primary shrink-0 flex flex-col gap-1 px-4 pt-2 pb-2">
-      <div className="border border-stroke-default rounded-lg p-3 min-h-[44px] max-h-[120px] relative">
+      <div className="border border-stroke-default rounded-lg p-3 min-h-[44px] max-h-[120px] relative flex items-end gap-2">
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -33,25 +33,13 @@ export function InputBar({
           }}
           placeholder={placeholder}
           disabled={isLoading}
-          className="w-full border-none outline-none resize-none text-[16px] leading-[24px] text-text-primary bg-transparent font-[inherit] min-h-[24px] max-h-[96px] p-0"
+          className="flex-1 border-none outline-none resize-none text-[16px] leading-[24px] text-text-primary bg-transparent font-[inherit] min-h-[24px] max-h-[96px] p-0"
           rows={1}
         />
-      </div>
-      <div className="flex items-center justify-between">
-        {/* Left: mic + image */}
-        <div className="flex items-center gap-0.5">
-          <button className="w-8 h-8 flex items-center justify-center bg-transparent border-none rounded cursor-pointer opacity-50 hover:opacity-80 transition-opacity">
-            <Icon name="microphone" size={20} color="var(--color-icon-secondary)" />
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center bg-transparent border-none rounded cursor-pointer opacity-50 hover:opacity-80 transition-opacity">
-            <Icon name="image" size={20} color="var(--color-icon-secondary)" />
-          </button>
-        </div>
-        {/* Right: send */}
         <button
           onClick={onSubmit}
           disabled={!canSend}
-          className="w-8 h-8 flex items-center justify-center bg-transparent border-none rounded cursor-pointer disabled:cursor-default disabled:opacity-35 transition-opacity"
+          className="w-8 h-8 flex items-center justify-center bg-transparent border-none rounded cursor-pointer shrink-0 disabled:cursor-default disabled:opacity-35 transition-opacity"
         >
           <Icon name="send" size={20} color="var(--color-text-informative)" />
         </button>
