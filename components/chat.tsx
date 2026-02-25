@@ -9,6 +9,8 @@ import { UserMessage } from "./user-message";
 import { TroubleshootingCard } from "./troubleshooting-card";
 import { EscalationCard } from "./escalation-card";
 import { SessionSummary } from "./session-summary";
+import { TriageCard } from "./triage-card";
+import { ResponseOptions } from "./response-options";
 import { TypingIndicator } from "./typing-indicator";
 import { InputBar } from "./input-bar";
 import { SCENARIO } from "@/lib/scenario";
@@ -63,6 +65,10 @@ export function Chat() {
     setInput("");
   };
 
+  const handleChipRespond = (response: string) => {
+    sendMessage({ text: response });
+  };
+
   const renderMessage = (message: (typeof messages)[number]) => {
     if (message.role === "user") {
       const text = message.parts
@@ -80,9 +86,10 @@ export function Chat() {
 
         if (part.type === "text" && part.text.trim()) {
           elements.push(
-            <CopilotMessage key={`${message.id}-text-${i}`}>
-              <span className="whitespace-pre-wrap">{part.text}</span>
-            </CopilotMessage>
+            <CopilotMessage
+              key={`${message.id}-text-${i}`}
+              text={part.text}
+            />
           );
         } else if (part.type === "dynamic-tool") {
           const { toolName } = part;
@@ -97,6 +104,27 @@ export function Chat() {
                 key={`${message.id}-tool-${i}`}
                 recommendation={args.recommendation as string}
                 sources={(args.sources as string[]) || []}
+              />
+            );
+          } else if (toolName === "show_triage_card" && args) {
+            elements.push(
+              <TriageCard
+                key={`${message.id}-tool-${i}`}
+                question={args.question as string}
+                items={(args.items as string[]) || []}
+                noneOption={
+                  (args.none_option as string) ||
+                  "I haven't tried any of these yet."
+                }
+                onRespond={handleChipRespond}
+              />
+            );
+          } else if (toolName === "show_response_options" && args) {
+            elements.push(
+              <ResponseOptions
+                key={`${message.id}-tool-${i}`}
+                options={(args.options as string[]) || []}
+                onRespond={handleChipRespond}
               />
             );
           } else if (toolName === "show_escalation_card" && args) {
@@ -115,6 +143,8 @@ export function Chat() {
                 key={`${message.id}-tool-${i}`}
                 stepsAttempted={args.steps_attempted as string[]}
                 outcome={args.outcome as string}
+                recommendation={args.recommendation as string | undefined}
+                issue={args.issue as string | undefined}
               />
             );
           }

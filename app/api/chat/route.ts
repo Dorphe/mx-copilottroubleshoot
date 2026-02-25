@@ -43,6 +43,38 @@ export async function POST(req: Request) {
               ),
           }),
         }),
+        show_triage_card: tool({
+          description:
+            "Display a triage checklist card with checkbox items for things the technician may have already tried. Always include an option like 'I haven't tried any of these yet.' Use this after initial diagnostic questions to check what has already been done.",
+          inputSchema: z.object({
+            question: z
+              .string()
+              .describe(
+                "The triage question, e.g. 'Before I start giving recommendations, have you looked into any of these?'"
+              ),
+            items: z
+              .array(z.string())
+              .describe(
+                'Array of checklist items, e.g. ["Checked coolant level", "Checked oil level", "Cleaned radiator screen"]'
+              ),
+            none_option: z
+              .string()
+              .describe(
+                "Text for the 'none' option, e.g. \"I haven't tried any of these yet.\""
+              ),
+          }),
+        }),
+        show_response_options: tool({
+          description:
+            "Display selectable response chip options for the technician to quickly indicate an outcome after a troubleshooting step. Use this after showing a troubleshooting card.",
+          inputSchema: z.object({
+            options: z
+              .array(z.string())
+              .describe(
+                'Array of response options, e.g. ["Oil was low. Topped off and running.", "Oil is fine and still tripping."]'
+              ),
+          }),
+        }),
         show_escalation_card: tool({
           description:
             "Display an escalation card recommending a specialist. Use this when all manual-listed troubleshooting steps have been exhausted without resolution.",
@@ -63,14 +95,28 @@ export async function POST(req: Request) {
         }),
         show_session_summary: tool({
           description:
-            "Display a session summary card that will be auto-attached to the work order. Use this when the issue has been resolved or escalated.",
+            "Display a resolution/session summary card that will be auto-attached to the work order. Use this when the issue has been resolved or escalated. The card shows labeled sections: Recommendation, Resolution, Steps attempted, and Issue.",
           inputSchema: z.object({
+            recommendation: z
+              .string()
+              .optional()
+              .describe(
+                "Follow-up recommendation, e.g. 'Investigate potential oil leak. Check fittings and gaskets during next PM.'"
+              ),
+            outcome: z
+              .string()
+              .describe(
+                "The resolution, e.g. 'Added compressor oil to proper level.'"
+              ),
             steps_attempted: z
               .array(z.string())
               .describe("List of diagnostic steps that were attempted"),
-            outcome: z
+            issue: z
               .string()
-              .describe("The resolution or current status"),
+              .optional()
+              .describe(
+                "Root cause summary, e.g. 'Thermal overload caused by low compressor oil.'"
+              ),
           }),
         }),
       },
