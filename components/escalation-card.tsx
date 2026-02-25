@@ -22,7 +22,7 @@ export function EscalationCard({
         <div className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
           Recommended specialist
         </div>
-        <div className="text-[20px] leading-[30px] text-text-primary">{reason}</div>
+        <div className="text-[16px] leading-[24px] text-text-primary">{reason}</div>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-bg-expressive-blue flex items-center justify-center shrink-0">
             <span className="text-base font-semibold text-text-informative">

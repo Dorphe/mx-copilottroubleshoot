@@ -142,7 +142,7 @@ export function Chat() {
         {phase === "start" ? (
           <StartScreen onAction={handleStartAction} />
         ) : (
-          <div className="flex-1 flex flex-col justify-end gap-8 py-4 w-full max-w-[624px]">
+          <div className="flex-1 flex flex-col justify-end gap-8 py-4 w-full max-w-[624px] mx-auto">
             {messages.map(renderMessage)}
             {status === "submitted" && <TypingIndicator />}
             {error && (
@@ -156,7 +156,7 @@ export function Chat() {
         )}
       </div>
 
-      <div className="w-full max-w-[624px]">
+      <div className="w-full max-w-[624px] mx-auto">
         <InputBar
           value={input}
           onChange={setInput}

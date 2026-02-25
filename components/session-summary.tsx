@@ -15,11 +15,11 @@ export function SessionSummary({
         <div className="text-sm font-semibold text-text-secondary mb-2.5 uppercase tracking-wider">
           Session Summary &mdash; Auto-attached to WO #{SCENARIO.wo.number}
         </div>
-        <div className="text-[20px] leading-[30px] text-text-primary">
+        <div className="text-[16px] leading-[24px] text-text-primary">
           <strong>Steps attempted:</strong>{" "}
           {stepsAttempted.join(" \u2192 ")}
         </div>
-        <div className="text-[20px] leading-[30px] text-text-primary mt-1">
+        <div className="text-[16px] leading-[24px] text-text-primary mt-1">
           <strong>Outcome:</strong> {outcome}
         </div>
       </div>

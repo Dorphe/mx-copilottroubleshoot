@@ -19,7 +19,7 @@ export function TroubleshootingCard({
               Recommended next steps
             </span>
           </div>
-          <div className="text-[20px] leading-[30px] text-text-primary">
+          <div className="text-[16px] leading-[24px] text-text-primary">
             {recommendation}
           </div>
         </div>

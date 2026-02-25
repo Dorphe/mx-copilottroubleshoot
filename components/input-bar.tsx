@@ -33,7 +33,7 @@ export function InputBar({
           }}
           placeholder={placeholder}
           disabled={isLoading}
-          className="w-full border-none outline-none resize-none text-[20px] leading-[30px] text-text-primary bg-transparent font-[inherit] min-h-[30px] max-h-[96px] p-0"
+          className="w-full border-none outline-none resize-none text-[16px] leading-[24px] text-text-primary bg-transparent font-[inherit] min-h-[30px] max-h-[96px] p-0"
           rows={1}
         />
       </div>

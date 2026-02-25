@@ -13,7 +13,7 @@ export function CopilotMessage({ children }: CopilotMessageProps) {
           CoPilot
         </span>
       </div>
-      <div className="text-[20px] leading-[30px] text-text-primary">{children}</div>
+      <div className="text-[16px] leading-[24px] text-text-primary">{children}</div>
     </div>
   );
 }
