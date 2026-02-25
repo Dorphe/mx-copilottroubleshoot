@@ -26,6 +26,7 @@ export async function POST(req: Request) {
       model: anthropic("claude-sonnet-4-20250514"),
       system: buildSystemPrompt(),
       messages: await convertToModelMessages(messages),
+      maxSteps: 3,
       tools: {
         show_troubleshooting_card: tool({
           description:
