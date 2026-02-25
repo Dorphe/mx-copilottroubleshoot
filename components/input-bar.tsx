@@ -21,7 +21,7 @@ export function InputBar({
 
   return (
     <div className="bg-bg-primary shrink-0 flex flex-col gap-1 px-4 pt-2 pb-2">
-      <div className="border border-stroke-default rounded-lg p-3 min-h-[44px] max-h-[120px] relative flex items-end gap-2">
+      <div className="border border-stroke-default rounded-lg p-3 min-h-[44px] max-h-[120px] relative flex items-center gap-2">
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
