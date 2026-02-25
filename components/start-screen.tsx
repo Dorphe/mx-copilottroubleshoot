@@ -9,9 +9,9 @@ interface StartScreenProps {
 
 export function StartScreen({ onAction }: StartScreenProps) {
   return (
-    <div className="flex-1 flex flex-col justify-end gap-0 p-4 pb-0">
+    <div className="flex-1 flex flex-col justify-center items-center gap-0 p-4 pb-0">
       {/* Work order card */}
-      <div className="border border-stroke-default rounded-lg p-4 flex flex-col gap-4">
+      <div className="w-full border border-stroke-default rounded-lg p-4 flex flex-col gap-4">
         {/* WO number + title */}
         <div className="flex flex-col gap-1">
           <span className="text-[14px] font-semibold text-text-secondary leading-5">
