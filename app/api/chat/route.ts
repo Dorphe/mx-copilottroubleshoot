@@ -1,5 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { streamText, tool, convertToModelMessages } from "ai";
+import { streamText, tool, convertToModelMessages, stepCountIs } from "ai";
 import { z } from "zod";
 import { buildSystemPrompt } from "@/lib/system-prompt";
 
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       model: anthropic("claude-sonnet-4-20250514"),
       system: buildSystemPrompt(),
       messages: await convertToModelMessages(messages),
-      maxSteps: 3,
+      stopWhen: stepCountIs(3),
       tools: {
         show_troubleshooting_card: tool({
           description:
