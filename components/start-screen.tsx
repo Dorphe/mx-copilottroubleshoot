@@ -9,61 +9,67 @@ interface StartScreenProps {
 
 export function StartScreen({ onAction }: StartScreenProps) {
   return (
-    <div className="flex-1 flex flex-col justify-center gap-8 p-4">
-      <div className="flex-1 flex flex-col justify-center gap-8">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <div className="text-sm font-semibold text-text-secondary leading-5">
-              WO #{SCENARIO.wo.number}
-            </div>
-            <div className="text-xl font-semibold text-text-primary leading-7">
-              {SCENARIO.wo.title}
-            </div>
+    <div className="flex-1 flex flex-col justify-end gap-0 p-4 pb-0">
+      {/* Work order card */}
+      <div className="border border-stroke-default rounded-lg p-4 flex flex-col gap-4">
+        {/* WO number + title */}
+        <div className="flex flex-col gap-1">
+          <span className="text-[14px] font-semibold text-text-secondary leading-5">
+            WO #{SCENARIO.wo.number}
+          </span>
+          <span className="text-[20px] font-semibold text-text-primary leading-7">
+            {SCENARIO.wo.title}
+          </span>
+        </div>
+
+        {/* Asset row */}
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 rounded-full border border-stroke-default flex items-center justify-center shrink-0 overflow-hidden"
+            style={{ background: "linear-gradient(135deg, #f97316, #ea580c)" }}
+          >
+            <Icon name="mechanical" size={16} color="rgba(255,255,255,0.9)" />
           </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-lg border border-stroke-default flex items-center justify-center shrink-0 overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)" }}
-            >
-              <Icon name="mechanical" size={14} color="rgba(255,255,255,0.9)" />
-            </div>
-            <span className="text-sm text-text-secondary leading-5">
-              {SCENARIO.asset.name} &mdash; {SCENARIO.asset.id}
-            </span>
+          <span className="text-[14px] text-text-secondary leading-5">
+            {SCENARIO.asset.name} &mdash; {SCENARIO.asset.id}
+          </span>
+        </div>
+
+        {/* Description */}
+        <div className="text-[16px] leading-[24px] text-text-primary flex flex-col gap-4">
+          <p className="m-0">{SCENARIO.wo.description}</p>
+          <p className="m-0">{SCENARIO.wo.history}</p>
+        </div>
+
+        {/* Get started section */}
+        <div className="flex flex-col gap-2 pt-4">
+          <span className="text-[14px] font-semibold text-text-secondary leading-5">
+            Get started
+          </span>
+          <div className="flex flex-wrap gap-2">
+            <ActionChip
+              icon="mechanical"
+              label="Troubleshoot asset"
+              onClick={() => onAction("troubleshoot")}
+            />
+            <ActionChip
+              icon="library"
+              label="Ask manual"
+              onClick={() => onAction("manual")}
+            />
+            <ActionChip
+              icon="workOrder"
+              label="Get work history summary"
+              onClick={() => onAction("history")}
+            />
           </div>
-        </div>
-        <div className="text-base leading-6 text-text-primary">
-          <p className="mb-4">{SCENARIO.wo.description}</p>
-          <p>{SCENARIO.wo.history}</p>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 shrink-0">
-        <div className="text-sm font-semibold text-text-secondary leading-5">
-          Get started
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          <ActionPill
-            icon="mechanical"
-            label="Troubleshoot issue"
-            onClick={() => onAction("troubleshoot")}
-          />
-          <ActionPill
-            icon="library"
-            label="Ask manual"
-            onClick={() => onAction("manual")}
-          />
-          <ActionPill
-            icon="workOrder"
-            label="Get work history summary"
-            onClick={() => onAction("history")}
-          />
         </div>
       </div>
     </div>
   );
 }
 
-function ActionPill({
+function ActionChip({
   icon,
   label,
   onClick,
@@ -77,10 +83,10 @@ function ActionPill({
       onClick={onClick}
       className="flex items-center gap-2 px-4 py-2 bg-bg-primary-accent border-none rounded-full cursor-pointer shrink-0 hover:bg-bg-expressive-blue transition-colors"
     >
-      <div className="w-7 h-7 rounded-full bg-bg-expressive-blue flex items-center justify-center">
-        <Icon name={icon} size={20} color="var(--color-text-informative)" />
+      <div className="w-7 h-7 rounded-full bg-bg-expressive-blue flex items-center justify-center shrink-0">
+        <Icon name={icon} size={18} color="var(--color-text-informative)" />
       </div>
-      <span className="text-base font-bold text-text-informative leading-6 whitespace-nowrap">
+      <span className="text-[14px] font-bold text-text-informative leading-5 whitespace-nowrap">
         {label}
       </span>
     </button>

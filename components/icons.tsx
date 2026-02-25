@@ -91,6 +91,43 @@ const iconPaths: Record<string, (color: string) => React.ReactNode> = {
       <circle cx="12" cy="7" r="4" stroke={c} strokeWidth="1.5" fill="none" />
     </>
   ),
+  question: (c) => (
+    <>
+      <circle cx="12" cy="12" r="10" stroke={c} strokeWidth="1.5" fill="none" />
+      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="12" cy="17" r="0.5" fill={c} stroke={c} strokeWidth="0.5" />
+    </>
+  ),
+  "sidebar-right": (c) => (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" stroke={c} strokeWidth="1.5" fill="none" />
+      <path d="M15 3v18" stroke={c} strokeWidth="1.5" />
+    </>
+  ),
+  microphone: (c) => (
+    <>
+      <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke={c} strokeWidth="1.5" fill="none" />
+      <path d="M19 10v2a7 7 0 01-14 0v-2" stroke={c} strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      <line x1="12" y1="19" x2="12" y2="23" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="8" y1="23" x2="16" y2="23" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+    </>
+  ),
+  image: (c) => (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" stroke={c} strokeWidth="1.5" fill="none" />
+      <circle cx="8.5" cy="8.5" r="1.5" stroke={c} strokeWidth="1.5" fill="none" />
+      <path d="M21 15l-5-5L5 21" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </>
+  ),
+  sparkle: (c) => (
+    <path
+      d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"
+      stroke={c}
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  ),
 };
 
 export function Icon({ name, size = 24, color = "var(--color-icon-secondary)" }: IconProps) {

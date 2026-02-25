@@ -20,8 +20,8 @@ export function InputBar({
   const canSend = value.trim() && !isLoading;
 
   return (
-    <div className="bg-bg-primary shrink-0 flex flex-col gap-1 p-4 pb-2">
-      <div className="border border-stroke-default rounded p-3 min-h-[44px] max-h-[120px] relative">
+    <div className="bg-bg-primary shrink-0 flex flex-col gap-1 px-4 pt-2 pb-2">
+      <div className="border border-stroke-default rounded-lg p-3 min-h-[44px] max-h-[120px] relative">
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -33,11 +33,21 @@ export function InputBar({
           }}
           placeholder={placeholder}
           disabled={isLoading}
-          className="w-full border-none outline-none resize-none text-[16px] leading-[24px] text-text-primary bg-transparent font-[inherit] min-h-[30px] max-h-[96px] p-0"
+          className="w-full border-none outline-none resize-none text-[16px] leading-[24px] text-text-primary bg-transparent font-[inherit] min-h-[24px] max-h-[96px] p-0"
           rows={1}
         />
       </div>
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        {/* Left: mic + image */}
+        <div className="flex items-center gap-0.5">
+          <button className="w-8 h-8 flex items-center justify-center bg-transparent border-none rounded cursor-pointer opacity-50 hover:opacity-80 transition-opacity">
+            <Icon name="microphone" size={20} color="var(--color-icon-secondary)" />
+          </button>
+          <button className="w-8 h-8 flex items-center justify-center bg-transparent border-none rounded cursor-pointer opacity-50 hover:opacity-80 transition-opacity">
+            <Icon name="image" size={20} color="var(--color-icon-secondary)" />
+          </button>
+        </div>
+        {/* Right: send */}
         <button
           onClick={onSubmit}
           disabled={!canSend}
@@ -46,7 +56,7 @@ export function InputBar({
           <Icon name="send" size={20} color="var(--color-text-informative)" />
         </button>
       </div>
-      <div className="text-xs text-text-secondary text-center leading-[18px] px-4 py-0.5">
+      <div className="text-[11px] text-text-secondary text-center leading-[16px] px-4 py-0.5">
         Always validate AI generated content for accuracy.
       </div>
     </div>
