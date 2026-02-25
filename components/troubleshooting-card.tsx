@@ -10,16 +10,16 @@ export function TroubleshootingCard({
   sources,
 }: TroubleshootingCardProps) {
   return (
-    <div className="px-4 max-w-[600px] animate-[fade-in-up_0.3s_ease]">
+    <div className="px-4 animate-[fade-in-up_0.3s_ease]">
       <div className="bg-bg-primary border border-stroke-default rounded-lg p-4 flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1">
             <Icon name="mechanical" size={24} color="var(--color-icon-secondary)" />
-            <span className="text-sm font-semibold text-text-primary leading-5">
+            <span className="text-base font-semibold text-text-primary leading-6">
               Recommended next steps
             </span>
           </div>
-          <div className="text-base leading-6 text-text-primary">
+          <div className="text-[20px] leading-[30px] text-text-primary">
             {recommendation}
           </div>
         </div>

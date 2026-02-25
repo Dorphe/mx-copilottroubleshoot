@@ -142,12 +142,12 @@ export function Chat() {
         {phase === "start" ? (
           <StartScreen onAction={handleStartAction} />
         ) : (
-          <div className="flex-1 flex flex-col justify-end gap-8 py-4">
+          <div className="flex-1 flex flex-col justify-end gap-8 py-4 w-full max-w-[624px]">
             {messages.map(renderMessage)}
             {status === "submitted" && <TypingIndicator />}
             {error && (
-              <div className="px-4 max-w-[600px]">
-                <div className="bg-bg-feedback-negative rounded-lg p-3 text-sm text-text-negative">
+              <div className="px-4">
+                <div className="bg-bg-feedback-negative rounded-lg p-3 text-text-negative">
                   <strong>Error:</strong> {error.message}
                 </div>
               </div>
@@ -156,13 +156,15 @@ export function Chat() {
         )}
       </div>
 
-      <InputBar
-        value={input}
-        onChange={setInput}
-        onSubmit={handleSubmit}
-        placeholder="Ask CoPilot"
-        isLoading={isLoading}
-      />
+      <div className="w-full max-w-[624px]">
+        <InputBar
+          value={input}
+          onChange={setInput}
+          onSubmit={handleSubmit}
+          placeholder="Ask CoPilot"
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }

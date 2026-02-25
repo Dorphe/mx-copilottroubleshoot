@@ -5,7 +5,7 @@ interface UserMessageProps {
 export function UserMessage({ text }: UserMessageProps) {
   return (
     <div className="flex justify-end px-4 animate-[fade-in-up_0.3s_ease]">
-      <div className="max-w-80 py-3 px-4 bg-bg-secondary rounded-xl text-sm leading-5 text-text-primary">
+      <div className="max-w-80 py-3 px-4 bg-bg-secondary rounded-xl text-[20px] leading-[30px] text-text-primary">
         {text}
       </div>
     </div>

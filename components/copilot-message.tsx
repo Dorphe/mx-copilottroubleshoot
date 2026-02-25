@@ -6,14 +6,14 @@ interface CopilotMessageProps {
 
 export function CopilotMessage({ children }: CopilotMessageProps) {
   return (
-    <div className="flex flex-col gap-2 px-4 max-w-[600px] animate-[fade-in-up_0.3s_ease]">
+    <div className="flex flex-col gap-2 px-4 animate-[fade-in-up_0.3s_ease]">
       <div className="flex items-center gap-1">
         <CopilotOrb size={24} />
-        <span className="text-sm font-semibold text-text-primary leading-5">
+        <span className="text-base font-semibold text-text-primary leading-6">
           CoPilot
         </span>
       </div>
-      <div className="text-sm leading-5 text-text-primary">{children}</div>
+      <div className="text-[20px] leading-[30px] text-text-primary">{children}</div>
     </div>
   );
 }

@@ -2,10 +2,10 @@ import { CopilotOrb } from "./copilot-orb";
 
 export function TypingIndicator() {
   return (
-    <div className="px-4 max-w-[600px]">
+    <div className="px-4">
       <div className="flex items-center gap-1 mb-2">
         <CopilotOrb size={24} />
-        <span className="text-sm font-semibold text-text-primary">CoPilot</span>
+        <span className="text-base font-semibold text-text-primary">CoPilot</span>
       </div>
       <div className="flex gap-1 py-1">
         {[0, 1, 2].map((i) => (

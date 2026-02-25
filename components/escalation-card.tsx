@@ -17,12 +17,12 @@ export function EscalationCard({
     .join("");
 
   return (
-    <div className="px-4 max-w-[600px] animate-[fade-in-up_0.3s_ease]">
+    <div className="px-4 animate-[fade-in-up_0.3s_ease]">
       <div className="bg-bg-primary-accent rounded-lg p-4 flex flex-col gap-3">
-        <div className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+        <div className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
           Recommended specialist
         </div>
-        <div className="text-sm text-text-primary leading-5">{reason}</div>
+        <div className="text-[20px] leading-[30px] text-text-primary">{reason}</div>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-bg-expressive-blue flex items-center justify-center shrink-0">
             <span className="text-base font-semibold text-text-informative">
@@ -30,10 +30,10 @@ export function EscalationCard({
             </span>
           </div>
           <div>
-            <div className="text-sm font-semibold text-text-primary leading-5">
+            <div className="text-base font-semibold text-text-primary leading-6">
               {expertName}
             </div>
-            <div className="text-xs text-text-secondary leading-[18px]">
+            <div className="text-sm text-text-secondary leading-5">
               {expertTitle} &middot; {availability}
             </div>
           </div>
