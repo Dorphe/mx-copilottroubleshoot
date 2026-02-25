@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { streamText, tool, convertToModelMessages } from "ai";
 import { z } from "zod";
 import { buildSystemPrompt } from "@/lib/system-prompt";
@@ -6,24 +6,24 @@ import { buildSystemPrompt } from "@/lib/system-prompt";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) {
     return new Response(
       JSON.stringify({
-        error: "OPENAI_API_KEY is not configured on the server.",
+        error: "ANTHROPIC_API_KEY is not configured on the server.",
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  const openai = createOpenAI({ apiKey });
+  const anthropic = createAnthropic({ apiKey });
 
   try {
     const { messages } = await req.json();
 
     const result = streamText({
-      model: openai("gpt-4o"),
+      model: anthropic("claude-sonnet-4-20250514"),
       system: buildSystemPrompt(),
       messages: await convertToModelMessages(messages),
       tools: {
