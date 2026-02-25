@@ -132,7 +132,7 @@ export function Chat() {
   };
 
   return (
-    <div className="w-full h-screen bg-bg-primary flex flex-col relative overflow-hidden mx-auto">
+    <div className="w-full max-w-[624px] h-screen bg-bg-primary flex flex-col relative overflow-hidden mx-auto">
       <Header onReset={handleReset} />
 
       <div
@@ -142,7 +142,7 @@ export function Chat() {
         {phase === "start" ? (
           <StartScreen onAction={handleStartAction} />
         ) : (
-          <div className="flex-1 flex flex-col justify-end gap-8 py-4 w-full max-w-[624px] mx-auto">
+          <div className="flex-1 flex flex-col justify-end gap-8 py-4 w-full">
             {messages.map(renderMessage)}
             {status === "submitted" && <TypingIndicator />}
             {error && (
@@ -156,7 +156,7 @@ export function Chat() {
         )}
       </div>
 
-      <div className="w-full max-w-[624px] mx-auto">
+      <div className="w-full">
         <InputBar
           value={input}
           onChange={setInput}
