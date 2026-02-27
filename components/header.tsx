@@ -1,4 +1,4 @@
-import { CopilotOrb } from "./copilot-orb";
+import { CopilotIcon } from "./pantry";
 import { SCENARIO } from "@/lib/scenario";
 
 interface HeaderProps {
@@ -11,7 +11,7 @@ export function Header({ onReset }: HeaderProps) {
       {/* Left: Orb + title */}
       <div className="flex items-center gap-1 flex-1 min-w-0">
         <div className="w-10 h-10 flex items-center justify-center shrink-0">
-          <CopilotOrb size={24} />
+          <CopilotIcon size={24} />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="text-[16px] font-semibold text-text-primary leading-6">

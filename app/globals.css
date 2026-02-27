@@ -1,29 +1,30 @@
 @import "tailwindcss";
+@import "./pantry-theme.css";
 
 @theme inline {
-  /* MaintainX Design Tokens */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f9fafb;
-  --color-bg-secondary-hover: #edf0f2;
-  --color-bg-primary-accent: #f7fbff;
-  --color-bg-expressive-blue: #e7f3fe;
-  --color-bg-feedback-positive: #ecfdf7;
-  --color-bg-feedback-negative: #fef2f2;
+  /* MaintainX Design Tokens — aliases for Tailwind classes */
+  --color-bg-primary: var(--pantry-color-background-primary);
+  --color-bg-secondary: var(--pantry-color-background-secondary);
+  --color-bg-secondary-hover: var(--pantry-color-background-secondary-hover);
+  --color-bg-primary-accent: var(--pantry-color-background-primary-accent);
+  --color-bg-expressive-blue: var(--pantry-color-background-expressive-blue);
+  --color-bg-feedback-positive: var(--pantry-color-background-feedback-positive);
+  --color-bg-feedback-negative: var(--pantry-color-background-feedback-negative);
 
-  --color-text-primary: #1e2429;
-  --color-text-secondary: #4d5a66;
-  --color-text-placeholder: #b5c0c9;
-  --color-text-informative: #246cff;
-  --color-text-positive: #027a65;
-  --color-text-negative: #ec4146;
+  --color-text-primary: var(--pantry-color-text-primary);
+  --color-text-secondary: var(--pantry-color-text-secondary);
+  --color-text-placeholder: var(--pantry-color-text-placeholder);
+  --color-text-informative: var(--pantry-color-text-accent);
+  --color-text-positive: var(--pantry-color-text-feedback-positive);
+  --color-text-negative: var(--pantry-color-text-feedback-negative);
 
-  --color-icon-secondary: #677888;
-  --color-stroke-default: #dadfe3;
-  --color-stroke-accent: #246cff;
-  --color-stroke-positive: #0dbf98;
+  --color-icon-secondary: var(--pantry-color-icon-secondary);
+  --color-stroke-default: var(--pantry-color-stroke-default);
+  --color-stroke-accent: var(--pantry-color-stroke-accent);
+  --color-stroke-positive: var(--pantry-color-stroke-feedback-positive);
 
-  --color-copilot-start: #6366f1;
-  --color-copilot-end: #3b82f6;
+  --color-copilot-start: #246CFF;
+  --color-copilot-end: #2ED888;
 }
 
 * {

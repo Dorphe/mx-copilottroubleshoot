@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "./icons";
+import { SendIcon } from "./pantry";
 
 interface InputBarProps {
   value: string;
@@ -41,7 +41,7 @@ export function InputBar({
           disabled={!canSend}
           className="w-8 h-8 flex items-center justify-center bg-transparent border-none rounded cursor-pointer shrink-0 disabled:cursor-default disabled:opacity-35 transition-opacity"
         >
-          <Icon name="send" size={20} color="var(--color-text-informative)" />
+          <SendIcon size={20} color="var(--color-text-informative)" />
         </button>
       </div>
       <div className="text-[11px] text-text-secondary text-center leading-[16px] px-4 py-0.5">

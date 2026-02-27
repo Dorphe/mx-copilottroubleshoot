@@ -1,0 +1,91 @@
+.root {
+  align-items: center;
+  background-color: var(--pantry-color-background-primary);
+  border: 1px solid var(--pantry-color-stroke-default);
+  border-radius: var(--pantry-radius-1x);
+  color: var(--pantry-color-text-primary);
+  display: inline-flex;
+  flex-shrink: 1;
+  font-family: var(--pantry-fontFamily-normal);
+  font-weight: var(--pantry-fontWeight-normal);
+  justify-content: center;
+  letter-spacing: var(--pantry-letterSpacing-normal);
+  overflow: hidden;
+  padding-left: var(--pantry-spacing-1x);
+  padding-right: var(--pantry-spacing-1x);
+  transition: border-color var(--pantry-transitionDuration-normal) var(--pantry-transitionTimingFunction-normal),
+              background-color var(--pantry-transitionDuration-normal) var(--pantry-transitionTimingFunction-normal);
+}
+
+.root.isClickable:not(.isDisabled):hover {
+  border-color: var(--pantry-color-stroke-default-hover);
+}
+
+.root:focus-visible {
+  outline: var(--pantry-color-stroke-accent) solid 2px;
+  outline-offset: 2px;
+}
+
+.small {
+  font-size: var(--pantry-fontSize-sm);
+  height: 24px;
+  line-height: var(--pantry-line-height-normal);
+}
+
+.medium {
+  font-size: var(--pantry-fontSize-md);
+  height: 32px;
+  line-height: var(--pantry-line-height-md);
+}
+
+.large {
+  font-size: var(--pantry-fontSize-lg);
+  height: 40px;
+  line-height: var(--pantry-line-height-normal);
+}
+
+.text {
+  flex-shrink: 1;
+  overflow: hidden;
+  padding-left: var(--pantry-spacing-1x);
+  padding-right: var(--pantry-spacing-1x);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.isClickable {
+  cursor: pointer;
+}
+
+.isDisabled {
+  background-color: var(--pantry-color-background-disabled);
+  border-color: var(--pantry-color-background-disabled);
+  color: var(--pantry-color-text-disabled);
+  cursor: not-allowed;
+}
+
+.isSelected {
+  background-color: var(--pantry-color-background-feedback-informative);
+  border-color: var(--pantry-color-stroke-accent);
+  color: var(--pantry-color-text-accent);
+  font-weight: var(--pantry-fontWeight-semibold);
+}
+
+.isSelected.isClickable:not(.isDisabled):hover {
+  background-color: var(--pantry-color-background-feedback-informative-hover);
+  border-color: var(--pantry-color-stroke-accent);
+}
+
+.media {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  padding-left: var(--pantry-spacing-1x);
+  padding-right: var(--pantry-spacing-1x);
+}
+
+.media > svg {
+  height: 16px;
+  width: 16px;
+}
